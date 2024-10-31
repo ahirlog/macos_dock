@@ -101,7 +101,9 @@ class _MacOSDockState extends State<MacOSDock> with TickerProviderStateMixin {
 
     if (!isOutside) {
       final int newIndex = (localPosition.dx / (_baseWidth + 10)).floor();
-      if (newIndex != _draggedIndex && newIndex >= 0 && newIndex < _items.length) {
+      if (newIndex != _draggedIndex &&
+          newIndex >= 0 &&
+          newIndex < _items.length) {
         setState(() {
           final item = _items.removeAt(_draggedIndex!);
           _items.insert(newIndex, item);
@@ -126,34 +128,6 @@ class _MacOSDockState extends State<MacOSDock> with TickerProviderStateMixin {
       _draggedIndex = null;
       _isDraggingOutside = false;
     });
-  }
-
-  Widget _buildDockBackground({required Widget child}) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.2),
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 10,
-            ),
-          ],
-        ),
-        child: BackdropFilter(
-          filter: ColorFilter.mode(
-            Colors.white.withOpacity(0.1),
-            BlendMode.softLight,
-          ),
-          child: Container(
-            color: Colors.transparent,
-            child: child,
-          ),
-        ),
-      ),
-    );
   }
 
   @override
@@ -182,53 +156,82 @@ class _MacOSDockState extends State<MacOSDock> with TickerProviderStateMixin {
             child: Stack(
               alignment: Alignment.center,
               children: [
-                _buildDockBackground(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: List.generate(_items.length, (index) {
-                      if (_isDraggingOutside && index == _draggedIndex) {
-                        return const SizedBox(width: 0);
-                      }
-
-                      final double distance = _mouseX != null
-                          ? (_mouseX! - (index * (_baseWidth + 10) + _baseWidth / 2)).abs()
-                          : double.infinity;
-
-                      double scale = 1.0;
-                      if (distance < _baseWidth * 2 && _draggedItem == null) {
-                        scale = 1.0 + (_maxZoom - 1.0) * (1 - distance / (_baseWidth * 2));
-                      }
-
-                      return Draggable<IconData>(
-                        data: _items[index],
-                        feedback: Material(
-                          color: Colors.transparent,
-                          child: DockItem(
-                            icon: _items[index],
-                            scale: _maxZoom,
-                            baseWidth: _baseWidth,
-                            baseHeight: _baseHeight,
-                          ),
+                /// background
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 10,
                         ),
-                        childWhenDragging: DockItem(
-                          icon: _items[index],
-                          scale: 1.0,
-                          baseWidth: _baseWidth,
-                          baseHeight: _baseHeight,
-                          opacity: 0.3,
-                        ),
-                        onDragStarted: () => _onDragStarted(_items[index], index),
-                        onDragUpdate: (details) => _onDragUpdate(details, index),
-                        onDragEnd: _onDragEnd,
+                      ],
+                    ),
+                    child: BackdropFilter(
+                      filter: ColorFilter.mode(
+                        Colors.white.withOpacity(0.1),
+                        BlendMode.softLight,
+                      ),
+                      child: Container(
+                        color: Colors.transparent,
+                      ),
+                    ),
+                  ),
+                ),
+
+                /// Dock items
+
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: List.generate(_items.length, (index) {
+                    if (_isDraggingOutside && index == _draggedIndex) {
+                      return const SizedBox(width: 0);
+                    }
+
+                    final double distance = _mouseX != null
+                        ? (_mouseX! -
+                                (index * (_baseWidth + 10) + _baseWidth / 2))
+                            .abs()
+                        : double.infinity;
+
+                    double scale = 1.0;
+                    if (distance < _baseWidth * 2 && _draggedItem == null) {
+                      scale = 1.0 +
+                          (_maxZoom - 1.0) * (1 - distance / (_baseWidth * 2));
+                    }
+
+                    return Draggable<IconData>(
+                      data: _items[index],
+                      feedback: Material(
+                        color: Colors.transparent,
                         child: DockItem(
                           icon: _items[index],
-                          scale: scale,
+                          scale: _maxZoom,
                           baseWidth: _baseWidth,
                           baseHeight: _baseHeight,
                         ),
-                      );
-                    }),
-                  ),
+                      ),
+                      childWhenDragging: DockItem(
+                        icon: _items[index],
+                        scale: 1.0,
+                        baseWidth: _baseWidth,
+                        baseHeight: _baseHeight,
+                        opacity: 0.3,
+                      ),
+                      onDragStarted: () => _onDragStarted(_items[index], index),
+                      onDragUpdate: (details) => _onDragUpdate(details, index),
+                      onDragEnd: _onDragEnd,
+                      child: DockItem(
+                        icon: _items[index],
+                        scale: scale,
+                        baseWidth: _baseWidth,
+                        baseHeight: _baseHeight,
+                      ),
+                    );
+                  }),
                 ),
               ],
             ),
@@ -262,6 +265,7 @@ class DockItem extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          // Main icon
           Transform.scale(
             scale: scale,
             child: Container(
