@@ -33,7 +33,14 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       home: Scaffold(
         body: Center(
-          child: MacOSDock(),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              MacOSDock(),
+              SizedBox(height: 20),
+              ResetButton(),
+            ],
+          ),
         ),
       ),
     );
@@ -116,9 +123,8 @@ class MacOSDock extends ConsumerWidget {
                         baseHeight: 48,
                         opacity: 0.3,
                       ),
-                      onDragStarted: () {
-                        // Handle drag start
-                      },
+                      // onDragStarted: () {
+                      // },
                       onDragEnd: (details) {
                         if (details.wasAccepted) return;
                         final newItems = List<IconData>.from(items);
@@ -200,6 +206,28 @@ class DockItem extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class ResetButton extends ConsumerWidget {
+  const ResetButton({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final notifier = ref.read(dockItemsProvider.notifier);
+
+    return ElevatedButton(
+      onPressed: () {
+        notifier.updateItems([
+          Icons.person,
+          Icons.message,
+          Icons.call,
+          Icons.camera,
+          Icons.photo,
+        ]);
+      },
+      child: const Text('Reset Dock'),
     );
   }
 }
